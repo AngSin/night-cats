@@ -1,13 +1,9 @@
 import { expect } from "chai";
 import hre  from "hardhat";
-import { deployMockContract } from "ethereum-waffle";
 import {BigNumber} from "ethers";
 
 describe("NightCats", async() => {
 	const deployContract = async () => {
-		// const contractDetails = require('../artifacts/contracts/NightCats.sol/NightCats.json');
-		// const [owner] = await hre.ethers.getSigners();
-		// return await deployMockContract(owner, contractDetails.abi);
 		const NightCats = await hre.ethers.getContractFactory("NightCats");
 		return await NightCats.deploy();
 	}
