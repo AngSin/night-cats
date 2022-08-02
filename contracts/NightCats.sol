@@ -27,7 +27,7 @@ contract NightCats is ERC721A, Ownable {
     // states
     uint256 public godCatTokenId;
     uint public inflictingCurseTimestamp;
-    mapping(uint256 => string) public catToState;
+    mapping(uint256 => string) public catToImmunityState;
 
     // uris
     string public unrevealedStateUri = "ipfs://unrevealed/";
@@ -51,7 +51,11 @@ contract NightCats is ERC721A, Ownable {
     }
 
     function _checkNecklaceContract() internal view virtual {
-        require(msg.sender == necklaceContract, "caller is not ");
+        require(msg.sender == necklaceContract, "caller is not the Necklaces contract!");
+    }
+
+    function setNecklaceContract(address _necklaceContract) public onlyOwner {
+        necklaceContract = _necklaceContract;
     }
 
     function mintReserve() public onlyOwner {
