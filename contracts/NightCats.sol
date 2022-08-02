@@ -41,6 +41,7 @@ contract NightCats is ERC721A, Ownable {
     uint public ascendingPeriod = 3 days;
     uint public immunityPeriod = 3 days;
 
+    // libraries
     using Strings for uint256;
 
     constructor() ERC721A("NightCats", "NCATS") {}

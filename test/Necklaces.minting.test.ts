@@ -82,4 +82,58 @@ describe("Necklaces minting", async() => {
 			expect(await necklacesContract.getResurrectionNecklaceCount()).to.equal(4n);
 		});
 	});
+
+	describe("createResurrectionNecklace", () => {
+		it("should create ResurrectionNecklace", async() => {
+			const [_, otherAccount] = await hre.ethers.getSigners();
+			const nightCatsContract = await deployContract("NightCats");
+			const necklacesContract = await deployContract("Necklaces");
+			await necklacesContract.setCatContract(nightCatsContract.address);
+			await nightCatsContract.mintReserve();
+			await nightCatsContract.setIsPublicSaleLive(true);
+			await necklacesContract.setMaxResurrection(0);
+
+			await nightCatsContract.connect(otherAccount).mint();
+			await necklacesContract.connect(otherAccount).mintNecklace();
+			await necklacesContract.connect(otherAccount).mintNecklace();
+			await necklacesContract.connect(otherAccount).mintNecklace();
+			expect(await necklacesContract.totalSupply()).to.equal(3);
+
+			expect(await necklacesContract.getResurrectionNecklaceCount()).to.equal(0);
+			await necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2);
+			expect(await necklacesContract.necklaceToState(0)).to.equal("resurrection");
+			expect(await necklacesContract.getResurrectionNecklaceCount()).to.equal(1);
+			expect(await necklacesContract.totalSupply()).to.equal(1);
+		});
+
+		it("should stop user if they don't own a cat", async () => {
+			const [_, otherAccount] = await hre.ethers.getSigners();
+			const nightCatsContract = await deployContract("NightCats");
+			const necklacesContract = await deployContract("Necklaces");
+			await necklacesContract.setCatContract(nightCatsContract.address);
+			await nightCatsContract.mintReserve();
+			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace();
+
+			await expect(necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2)).to.be.revertedWith("You must own a cat to mint a necklace!");
+		});
+
+		it("should not let user burn someone else's immunity necklace", async () => {
+			const [_, otherAccount] = await hre.ethers.getSigners();
+			const nightCatsContract = await deployContract("NightCats");
+			const necklacesContract = await deployContract("Necklaces");
+			await necklacesContract.setCatContract(nightCatsContract.address);
+			await nightCatsContract.mintReserve();
+			await nightCatsContract.setIsPublicSaleLive(true);
+			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace();
+
+			await nightCatsContract.connect(otherAccount).mint();
+			await necklacesContract.connect(otherAccount).mintNecklace();
+			await expect(necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2))
+				.to.be.revertedWith("First necklace is not yours to burn!");
+		});
+	});
 });

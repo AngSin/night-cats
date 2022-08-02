@@ -21,6 +21,9 @@ contract Necklaces is ERC721A, Ownable {
     string resurrectionState = "resurrection";
     mapping(uint256 => string) public necklaceToState;
 
+    // libraries
+    using Strings for uint256;
+
     constructor() ERC721A("Necklaces", "NLACES") {}
 
     function setMaxImmunity(uint256 _MAX_IMMUNITY) public onlyOwner {
@@ -67,10 +70,14 @@ contract Necklaces is ERC721A, Ownable {
         return (keccak256(abi.encodePacked(_state)) == keccak256(abi.encodePacked(resurrectionState)));
     }
 
+    function checkStateIsImmunity(string memory _state) internal view returns(bool){
+        return (keccak256(abi.encodePacked(_state)) == keccak256(abi.encodePacked(immunityState)));
+    }
+
     function mintNecklace() public onlyCatOwner {
         uint256 randomNum = block.timestamp % 2;
         string memory state;
-        if (getResurrectionNecklaceCount() == MAX_RESURRECTION) {
+        if (getResurrectionNecklaceCount() >= MAX_RESURRECTION) {
             state = immunityState;
         } else {
             if (randomNum == 0) {
@@ -81,6 +88,18 @@ contract Necklaces is ERC721A, Ownable {
         }
         uint256 tokenId = totalSupply();
         necklaceToState[tokenId] = state;
-        _mint(msg.sender, 1);
+        super._mint(msg.sender, 1);
+    }
+
+    function createResurrectionNecklace(uint256 _necklaceId0, uint256 _necklaceId1, uint256 _necklaceId2) public onlyCatOwner {
+        require(super.ownerOf(_necklaceId0) == msg.sender, "First necklace is not yours to burn!");
+        require(checkStateIsImmunity(necklaceToState[_necklaceId0]), "First necklace is not an immunity necklace!");
+        require(super.ownerOf(_necklaceId1) == msg.sender, "Second necklace is not yours to burn!");
+        require(checkStateIsImmunity(necklaceToState[_necklaceId1]), "Second necklace is not an immunity necklace!");
+        require(super.ownerOf(_necklaceId2) == msg.sender, "Third necklace is not yours to burn!");
+        require(checkStateIsImmunity(necklaceToState[_necklaceId2]), "Third necklace is not an immunity necklace!");
+        necklaceToState[_necklaceId0] = resurrectionState;
+        super._burn(_necklaceId1);
+        super._burn(_necklaceId2);
     }
 }
