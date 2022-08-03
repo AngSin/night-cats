@@ -7,14 +7,18 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
+interface NightCat {
+    function gainImmunity(uint256 _catId) external;
+}
+
 contract Necklaces is ERC721A, Ownable {
     // cat contract
     address catContract;
 
     // mint limits
-    uint256 public MAX_IMMUNITY = 6667;
-    uint256 public MAX_RESURRECTION = 3333;
-    uint256 public MAX = MAX_IMMUNITY + MAX_RESURRECTION;
+    uint256 public maxImmunity = 6667;
+    uint256 public maxResurrection = 3333;
+    uint256 public max = maxImmunity + maxResurrection;
 
     // necklace state
     string immunityState = "immunity";
@@ -27,11 +31,11 @@ contract Necklaces is ERC721A, Ownable {
     constructor() ERC721A("Necklaces", "NLACES") {}
 
     function setMaxImmunity(uint256 _MAX_IMMUNITY) public onlyOwner {
-        MAX_IMMUNITY = _MAX_IMMUNITY;
+        maxImmunity = _MAX_IMMUNITY;
     }
 
     function setMaxResurrection(uint256 _MAX_RESURRECTION) public onlyOwner {
-        MAX_RESURRECTION = _MAX_RESURRECTION;
+        maxResurrection = _MAX_RESURRECTION;
     }
 
     function _checkCatContract() internal view virtual {
@@ -77,7 +81,7 @@ contract Necklaces is ERC721A, Ownable {
     function mintNecklace() public onlyCatOwner {
         uint256 randomNum = block.timestamp % 2;
         string memory state;
-        if (getResurrectionNecklaceCount() >= MAX_RESURRECTION) {
+        if (getResurrectionNecklaceCount() >= maxResurrection) {
             state = immunityState;
         } else {
             if (randomNum == 0) {
@@ -101,5 +105,13 @@ contract Necklaces is ERC721A, Ownable {
         necklaceToState[_necklaceId0] = resurrectionState;
         super._burn(_necklaceId1);
         super._burn(_necklaceId2);
+    }
+
+    function consumeImmunityNecklace(uint256 _necklaceId, uint256 _catId) public onlyCatOwner {
+        require(super.ownerOf(_necklaceId) == msg.sender, "Necklace is not yours to consume!");
+        require(IERC721A(catContract).ownerOf(_catId) == msg.sender, "This is not your cat!");
+        require(checkStateIsImmunity(necklaceToState[_necklaceId]), "Necklace is not an immunity necklace!");
+        NightCat(catContract).gainImmunity(_catId);
+        super._burn(_necklaceId);
     }
 }

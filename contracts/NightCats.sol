@@ -17,6 +17,7 @@ contract NightCats is ERC721A, Ownable {
     bool public revealed = false;
 
     // supplies
+    uint256 public maxPerWallet = 3;
     uint256 public reserveSupply = 400;
     uint256 public freeMintSupply = 1000;
     uint256 public paidMintSupply = 4155;
@@ -27,7 +28,8 @@ contract NightCats is ERC721A, Ownable {
     // states
     uint256 public godCatTokenId;
     uint public inflictingCurseTimestamp;
-    mapping(uint256 => string) public catToImmunityState;
+    string public immuneState = "immune";
+    mapping(uint256 => string) public catToState;
 
     // uris
     string public unrevealedStateUri = "ipfs://unrevealed/";
@@ -62,7 +64,7 @@ contract NightCats is ERC721A, Ownable {
     function mintReserve() public onlyOwner {
         require (isReserveMinted == false, "Reserve is already minted!");
         isReserveMinted = true;
-        _mint(msg.sender, reserveSupply);
+        super._safeMint(msg.sender, reserveSupply);
     }
 
     function setIsPublicSaleLive(bool _isPublicSaleLive) public onlyOwner {
@@ -72,12 +74,12 @@ contract NightCats is ERC721A, Ownable {
 
     function mint() public payable {
         require(isPublicSaleLive, "Public sale is not yet live!");
-        require(balanceOf(msg.sender) == 0, "You already have some NightCats!");
+        require(balanceOf(msg.sender) <= maxPerWallet, "You already have some NightCats!");
         require(totalSupply() < (reserveSupply + freeMintSupply + paidMintSupply), "All NightCats have been minted!");
         if (totalSupply() >= (reserveSupply + freeMintSupply)) {
             require(msg.value >= mintPrice, "Please send at least 0.025 ETH to mint!");
         }
-        _mint(msg.sender, 1);
+        super._safeMint(msg.sender, 1);
     }
 
     function setGodCatId(uint256 _tokenId) public onlyOwner {
@@ -94,6 +96,15 @@ contract NightCats is ERC721A, Ownable {
 
     function revealCats() public onlyOwner {
         revealed = true;
+    }
+
+    function checkStateIsImmunity(string memory _state) internal view returns(bool){
+        return (keccak256(abi.encodePacked(_state)) == keccak256(abi.encodePacked(immuneState)));
+    }
+
+    function gainImmunity(uint256 _catId) external onlyNecklaceContract {
+        require(!checkStateIsImmunity(catToState[_catId]), "Cat is already immune!");
+        catToState[_catId] = immuneState;
     }
 
     function tokenURI(uint256 _tokenId) override public view returns (string memory) {
