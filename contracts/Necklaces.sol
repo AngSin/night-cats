@@ -14,6 +14,7 @@ interface NightCat {
 contract Necklaces is ERC721A, Ownable {
     // cat contract
     address catContract;
+    mapping(uint256 => uint256) catToNumOfNecklaces;
 
     // mint limits
     uint256 public maxImmunity = 6667;
@@ -42,9 +43,14 @@ contract Necklaces is ERC721A, Ownable {
         require(msg.sender == catContract, "caller is not the NightCats contract!");
     }
 
+
     modifier onlyCatContract() {
         _checkCatContract();
         _;
+    }
+
+    function _checkCatOwnership(uint256 _catId) internal view virtual {
+        require(IERC721A(catContract).ownerOf(_catId) == msg.sender, "This is not your cat!");
     }
 
     function _checkCatOwner() internal view virtual {
@@ -78,7 +84,9 @@ contract Necklaces is ERC721A, Ownable {
         return (keccak256(abi.encodePacked(_state)) == keccak256(abi.encodePacked(immunityState)));
     }
 
-    function mintNecklace() public onlyCatOwner {
+    function mintNecklace(uint256 _catId) public onlyCatOwner {
+        _checkCatOwnership(_catId);
+        require(catToNumOfNecklaces[_catId] < 3, "You already minted 3 or more Necklaces with this cat!");
         uint256 randomNum = block.timestamp % 2;
         string memory state;
         if (getResurrectionNecklaceCount() >= maxResurrection) {
@@ -109,7 +117,7 @@ contract Necklaces is ERC721A, Ownable {
 
     function consumeImmunityNecklace(uint256 _necklaceId, uint256 _catId) public onlyCatOwner {
         require(super.ownerOf(_necklaceId) == msg.sender, "Necklace is not yours to consume!");
-        require(IERC721A(catContract).ownerOf(_catId) == msg.sender, "This is not your cat!");
+        _checkCatOwnership(_catId);
         require(checkStateIsImmunity(necklaceToState[_necklaceId]), "Necklace is not an immunity necklace!");
         NightCat(catContract).gainImmunity(_catId);
         super._burn(_necklaceId);
