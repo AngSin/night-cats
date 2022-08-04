@@ -29,6 +29,8 @@ contract NightCats is ERC721A, Ownable {
     uint256 public godCatTokenId;
     uint public inflictingCurseTimestamp;
     string public immuneState = "immune";
+    string public deadState = "dead";
+    string public normalState = "normal";
     mapping(uint256 => string) public catToState;
 
     // uris
@@ -98,13 +100,26 @@ contract NightCats is ERC721A, Ownable {
         revealed = true;
     }
 
-    function checkStateIsImmunity(string memory _state) internal view returns(bool){
+    function isImmuneState(string memory _state) internal view returns(bool){
         return (keccak256(abi.encodePacked(_state)) == keccak256(abi.encodePacked(immuneState)));
     }
 
+    function isDeadState(string memory _state) internal view returns(bool){
+        return (keccak256(abi.encodePacked(_state)) == keccak256(abi.encodePacked(deadState)));
+    }
+
     function gainImmunity(uint256 _catId) external onlyNecklaceContract {
-        require(!checkStateIsImmunity(catToState[_catId]), "Cat is already immune!");
+        require(!isImmuneState(catToState[_catId]), "Cat is already immune!");
         catToState[_catId] = immuneState;
+    }
+
+    function resurrectCat(uint256 _catId) external onlyNecklaceContract {
+        require(isDeadState(catToState[_catId]), "The cat is not dead!");
+        catToState[_catId] = normalState;
+    }
+
+    function changeStateOfCat(uint256 _catId, string calldata _state) external onlyOwner {
+        catToState[_catId] = _state;
     }
 
     function tokenURI(uint256 _tokenId) override public view returns (string memory) {

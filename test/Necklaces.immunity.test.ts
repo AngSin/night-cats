@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import hre  from "hardhat";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("Necklaces minting", async() => {
 	const deployContract = async (contractName = "Necklaces") => {
@@ -16,8 +15,8 @@ describe("Necklaces minting", async() => {
 			await catContract.setNecklaceContract(necklaceContract.address);
 			await necklaceContract.setMaxResurrection(0);
 			await catContract.mintReserve();
-			await necklaceContract.mintNecklace();
-			await necklaceContract.mintNecklace();
+			await necklaceContract.mintNecklace(0);
+			await necklaceContract.mintNecklace(0);
 
 			expect(await necklaceContract.totalSupply()).to.equal(2);
 			await necklaceContract.consumeImmunityNecklace(0, 0);
@@ -35,7 +34,7 @@ describe("Necklaces minting", async() => {
 			await catContract.mintReserve();
 			await catContract.setIsPublicSaleLive(true);
 			await catContract.connect(otherAccount).mint();
-			await necklaceContract.connect(otherAccount).mintNecklace();
+			await necklaceContract.connect(otherAccount).mintNecklace(400);
 
 			expect(await catContract.ownerOf(400)).to.equal(otherAccount.address);
 			expect(await necklaceContract.totalSupply()).to.equal(1);
@@ -53,7 +52,7 @@ describe("Necklaces minting", async() => {
 			await catContract.mintReserve();
 			await catContract.setIsPublicSaleLive(true);
 			await catContract.connect(otherAccount).mint();
-			await necklaceContract.connect(otherAccount).mintNecklace();
+			await necklaceContract.connect(otherAccount).mintNecklace(400);
 
 			expect(await catContract.ownerOf(400)).to.equal(otherAccount.address);
 			expect(await necklaceContract.totalSupply()).to.equal(1);
@@ -69,8 +68,8 @@ describe("Necklaces minting", async() => {
 			await catContract.setNecklaceContract(necklaceContract.address);
 			await necklaceContract.setMaxResurrection(0);
 			await catContract.mintReserve();
-			await necklaceContract.mintNecklace();
-			await necklaceContract.mintNecklace();
+			await necklaceContract.mintNecklace(0);
+			await necklaceContract.mintNecklace(0);
 
 			await necklaceContract.consumeImmunityNecklace(0, 0);
 			await expect(necklaceContract.consumeImmunityNecklace(1, 0)).to.be.revertedWith("Cat is already immune!");

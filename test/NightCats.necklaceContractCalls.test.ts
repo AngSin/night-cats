@@ -14,4 +14,11 @@ describe("Necklaces minting", async() => {
 			await expect(catContract.gainImmunity(0)).to.be.revertedWith("caller is not the Necklaces contract!");
 		});
 	});
+
+	describe("resurrectCat", () => {
+		it("should not let any other address besides the necklace contract invoke it", async () => {
+			const catContract = await deployContract("NightCats");
+			await expect(catContract.resurrectCat(0)).to.be.revertedWith("caller is not the Necklaces contract!");
+		});
+	});
 });

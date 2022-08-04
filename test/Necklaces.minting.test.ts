@@ -33,7 +33,7 @@ describe("Necklaces minting", async() => {
 			await nightCatsContract.mintReserve();
 			await necklacesContract.setCatContract(nightCatsContract.address);
 
-			await expect(necklacesContract.connect(otherAccount).mintNecklace(0)).to.be.revertedWith("You must own a cat to mint a necklace!");
+			await expect(necklacesContract.connect(otherAccount).mintNecklace(0)).to.be.revertedWith("You must own a cat to do this!");
 		});
 
 		it("should only mint immunity necklaces after all resurrection necklaces have been minted", async () => {
@@ -67,16 +67,16 @@ describe("Necklaces minting", async() => {
 			await necklacesContract.setCatContract(nightCatsContract.address);
 
 			await time.setNextBlockTimestamp(333333333330);
-			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace(0);
 
 			await time.increaseTo(333333333332);
-			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace(1);
 
 			await time.increaseTo(333333333334);
-			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace(2);
 
 			await time.increaseTo(333333333336);
-			await necklacesContract.mintNecklace();
+			await necklacesContract.mintNecklace(3);
 
 			expect(await necklacesContract.totalSupply()).to.equal(4n);
 			expect(await necklacesContract.getResurrectionNecklaceCount()).to.equal(4n);
@@ -116,7 +116,7 @@ describe("Necklaces minting", async() => {
 			await necklacesContract.mintNecklace(0);
 			await necklacesContract.mintNecklace(0);
 
-			await expect(necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2)).to.be.revertedWith("You must own a cat to mint a necklace!");
+			await expect(necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2)).to.be.revertedWith("You must own a cat to do this!");
 		});
 
 		it("should not let user burn someone else's immunity necklace", async () => {

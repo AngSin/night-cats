@@ -9,6 +9,8 @@ import "hardhat/console.sol";
 
 interface NightCat {
     function gainImmunity(uint256 _catId) external;
+
+    function resurrectCat(uint256 _catId) external;
 }
 
 contract Necklaces is ERC721A, Ownable {
@@ -54,7 +56,7 @@ contract Necklaces is ERC721A, Ownable {
     }
 
     function _checkCatOwner() internal view virtual {
-        require(IERC721A(catContract).balanceOf(msg.sender) > 0, "You must own a cat to mint a necklace!");
+        require(IERC721A(catContract).balanceOf(msg.sender) > 0, "You must own a cat to do this!");
     }
 
     modifier onlyCatOwner() {
@@ -120,6 +122,14 @@ contract Necklaces is ERC721A, Ownable {
         _checkCatOwnership(_catId);
         require(checkStateIsImmunity(necklaceToState[_necklaceId]), "Necklace is not an immunity necklace!");
         NightCat(catContract).gainImmunity(_catId);
+        super._burn(_necklaceId);
+    }
+
+    function consumeResurrectionNecklace(uint256 _necklaceId, uint256 _catId) public onlyCatOwner {
+        require(super.ownerOf(_necklaceId) == msg.sender, "Necklace is not yours to consume!");
+        _checkCatOwnership(_catId);
+        require(checkStateIsResurrection(necklaceToState[_necklaceId]), "Necklace is not a resurrection necklace!");
+        NightCat(catContract).resurrectCat(_catId);
         super._burn(_necklaceId);
     }
 }
