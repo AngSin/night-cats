@@ -8,6 +8,17 @@ describe("NightCats", async() => {
 		return await NightCats.deploy();
 	}
 
+	describe("openseaLink", () => {
+		it("should only let owner change opensea link", async () => {
+			const [_, otherAccount] = await hre.ethers.getSigners();
+			const contract = await deployContract()
+			await expect(contract.connect(otherAccount).setOpenseaLink("https://looksrare.org"))
+				.to.be.revertedWith("Ownable: caller is not the owner");
+			await contract.setOpenseaLink("https://opensea.io/collection");
+			expect(await contract.openseaLink()).to.equal("https://opensea.io/collection");
+		});
+	});
+
 	describe("mintPrice", () => {
 		it("should have correct mint price", async () => {
 			const correctMintPriceInWei = 25000000000000000n;

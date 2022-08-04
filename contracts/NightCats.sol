@@ -11,23 +11,26 @@ contract NightCats is ERC721A, Ownable {
     // necklace contract
     address necklaceContract;
 
+    // opensea link
+    string public openseaLink;
+
     // flags
     bool public isReserveMinted = false;
     bool public isPublicSaleLive = false;
     bool public revealed = false;
 
-    // supplies
+    // limits
     uint256 public maxPerWallet = 3;
     uint256 public reserveSupply = 400;
     uint256 public freeMintSupply = 1000;
     uint256 public paidMintSupply = 4155;
+    uint256 public maxKillsPerCurse = 15;
 
     // mint price
     uint256 public mintPrice = 0.025 ether;
 
     // states
     uint256 public godCatTokenId;
-    uint public inflictingCurseTimestamp;
     string public immuneState = "immune";
     string public deadState = "dead";
     string public normalState = "normal";
@@ -42,13 +45,23 @@ contract NightCats is ERC721A, Ownable {
     string public godCatAscendedUri = "ipfs://godCatAscended";
 
     // periods
-    uint public ascendingPeriod = 3 days;
+    uint public curseTimestamp;
+    uint256 public catsKilledDuringThisCurse = 0;
+    uint public cursePeriod = 3 days;
     uint public immunityPeriod = 3 days;
 
     // libraries
     using Strings for uint256;
 
     constructor() ERC721A("NightCats", "NCATS") {}
+
+    function setOpenseaLink(string calldata _openseaLink) public onlyOwner {
+        openseaLink = _openseaLink;
+    }
+
+    function fetchAllUnder1e() public {
+
+    }
 
     modifier onlyNecklaceContract() {
         _checkNecklaceContract();
@@ -89,11 +102,12 @@ contract NightCats is ERC721A, Ownable {
     }
 
     function inflictCurse() public onlyOwner {
-        inflictingCurseTimestamp = block.timestamp;
+        curseTimestamp = block.timestamp;
+        catsKilledDuringThisCurse = 0;
     }
 
-    function isCurseInflicting() public view returns(bool){
-        return (inflictingCurseTimestamp + ascendingPeriod) >= block.timestamp;
+    function isCurseActive() public view returns(bool){
+        return (curseTimestamp + cursePeriod) >= block.timestamp;
     }
 
     function revealCats() public onlyOwner {
@@ -122,23 +136,33 @@ contract NightCats is ERC721A, Ownable {
         catToState[_catId] = _state;
     }
 
+    function killCat(uint256 _catId) public {
+        require(super.ownerOf(godCatTokenId) == msg.sender, "You are not the God Cat!");
+        require(isCurseActive(), "Curse is not active!");
+        require(catsKilledDuringThisCurse < maxKillsPerCurse, "You have already exhausted this curse!");
+        require(isImmuneState(catToState[_catId]), "This cat is not immune to the curse! You can't kill your own slave cat!");
+        catToState[_catId] = deadState;
+        catsKilledDuringThisCurse++;
+    }
+
     function tokenURI(uint256 _tokenId) override public view returns (string memory) {
         if (!revealed) {
             return string(abi.encodePacked(unrevealedStateUri, Strings.toString(_tokenId)));
         }
         if (_tokenId == godCatTokenId) {
-            if (inflictingCurseTimestamp == 0) {
+            if (curseTimestamp == 0) {
                 return godCatUri;
             }
-            if (isCurseInflicting()) {
+            if (isCurseActive()) {
                 return godCatAscendingUri;
             } else {
                 return godCatAscendedUri;
             }
+        } else {
+            if (isCurseActive()) {
+                return string(abi.encodePacked(undeadStateUri, Strings.toString(_tokenId)));
+            }
+            return string(abi.encodePacked(normalStateUri, Strings.toString(_tokenId)));
         }
-        if (isCurseInflicting()) {
-            return string(abi.encodePacked(undeadStateUri, Strings.toString(_tokenId)));
-        }
-        return string(abi.encodePacked(normalStateUri, Strings.toString(_tokenId)));
     }
 }
