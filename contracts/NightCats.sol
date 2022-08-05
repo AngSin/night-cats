@@ -136,6 +136,24 @@ contract NightCats is ERC721A, Ownable {
         catToState[_catId] = _state;
     }
 
+    function getAllImmuneCats() external view returns (uint256[] memory) {
+        uint256 numOfImmuneCats;
+        for (uint256 i = 0; i < super.totalSupply(); i++) {
+            if (isImmuneState(catToState[i])) {
+                numOfImmuneCats++;
+            }
+        }
+        uint256[] memory immuneCats = new uint256[](numOfImmuneCats);
+        uint256 immuneCatsIndex = 0;
+        for (uint256 i = 0; i < super.totalSupply(); i++) {
+            if (isImmuneState(catToState[i])) {
+                immuneCats[immuneCatsIndex] = i;
+                immuneCatsIndex++;
+            }
+        }
+        return immuneCats;
+    }
+
     function killCat(uint256 _catId) public {
         require(super.ownerOf(godCatTokenId) == msg.sender, "You are not the God Cat!");
         require(isCurseActive(), "Curse is not active!");
