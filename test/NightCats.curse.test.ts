@@ -8,18 +8,18 @@ describe("NightCats", async() => {
 		return await NightCats.deploy();
 	}
 
-	describe("inflictingCurseTimestamp", () => {
+	describe("curseTimestamp", () => {
 		it("should be unset to start with", async () => {
 			const contract = await deployContract();
-			expect(await contract.inflictingCurseTimestamp()).to.equal(0n);
+			expect(await contract.curseTimestamp()).to.equal(0n);
 		});
 	});
 
-	describe("isCurseInflicting", () => {
+	describe("isCurseActive", () => {
 		it("should be in inflicting curse state within 3 days of inflicting curse", async () => {
 			const contract = await deployContract();
 			await contract.inflictCurse();
-			expect(await contract.isCurseInflicting()).to.equal(true);
+			expect(await contract.isCurseActive()).to.equal(true);
 		});
 
 		it("should not be in inflicting curse state if 3 days have passed since inflicting curse", async () => {
@@ -27,7 +27,7 @@ describe("NightCats", async() => {
 			await contract.inflictCurse();
 			const moreThanThreeDaysInSeconds = (60 * 60 * 24 * 3) + 1;
 			await time.increase(moreThanThreeDaysInSeconds);
-			expect(await contract.isCurseInflicting()).to.equal(false);
+			expect(await contract.isCurseActive()).to.equal(false);
 		});
 	});
 });

@@ -38,12 +38,11 @@ contract NightCats is ERC721A, Ownable {
     uint256 curseCounter = 0;
 
     // uris
-    string public unrevealedStateUri = "ipfs://unrevealed/";
-    string public normalStateUri = "ipfs://normalState/";
-    string public undeadStateUri = "ipfs://undeadState/";
-    string public godCatUri = "ipfs://godCat";
-    string public godCatAscendingUri = "ipfs://godCatAscending";
-    string public godCatAscendedUri = "ipfs://godCatAscended";
+    string public baseStateUri = "ipfs://baseState/";
+    string public cursedStateUri = "ipfs://cursedState/";
+    string public deadStateUri = "ipfs://deadState/";
+    string public immuneStateUri = "ipfs://immuneState/";
+    string public godCatUri = "ipfs://godCat/";
 
     // periods
     uint public curseTimestamp;
@@ -58,6 +57,26 @@ contract NightCats is ERC721A, Ownable {
 
     function setOpenseaLink(string calldata _openseaLink) public onlyOwner {
         openseaLink = _openseaLink;
+    }
+
+    function setBaseStateUri(string calldata _baseStateUri) public onlyOwner {
+        baseStateUri = _baseStateUri;
+    }
+
+    function setCursedStateUri(string calldata _cursedStateUri) public onlyOwner {
+        cursedStateUri = _cursedStateUri;
+    }
+
+    function setDeadStateUri(string calldata _deadStateUri) public onlyOwner {
+        deadStateUri = _deadStateUri;
+    }
+
+    function setImmuneStateUri(string calldata _immuneStateUri) public onlyOwner {
+        immuneStateUri = _immuneStateUri;
+    }
+
+    function setGodCatUri(string calldata _godCatUri) public onlyOwner {
+        godCatUri = _godCatUri;
     }
 
     modifier onlyNecklaceContract() {
@@ -168,24 +187,23 @@ contract NightCats is ERC721A, Ownable {
         catsKilledDuringThisCurse++;
     }
 
-    function tokenURI(uint256 _tokenId) override public view returns (string memory) {
+    function tokenURI(uint256 _catId) override public view returns (string memory) {
         if (!revealed) {
-            return string(abi.encodePacked(unrevealedStateUri, Strings.toString(_tokenId)));
+            return "";
         }
-        if (_tokenId == godCatTokenId) {
-            if (curseTimestamp == 0) {
-                return godCatUri;
-            }
-            if (isCurseActive()) {
-                return godCatAscendingUri;
-            } else {
-                return godCatAscendedUri;
-            }
+        if (_catId == godCatTokenId) {
+            return string(abi.encodePacked(godCatUri, Strings.toString(_catId)));
         } else {
-            if (isCurseActive()) {
-                return string(abi.encodePacked(undeadStateUri, Strings.toString(_tokenId)));
+            if (isDeadState(catToState[_catId])) {
+                return string(abi.encodePacked(deadStateUri, Strings.toString(_catId)));
             }
-            return string(abi.encodePacked(normalStateUri, Strings.toString(_tokenId)));
+            if (isCurseActive() && isImmuneState(catToState[_catId])) {
+                return string(abi.encodePacked(immuneStateUri, Strings.toString(_catId)));
+            }
+            if (isCurseActive()) {
+                return string(abi.encodePacked(cursedStateUri, Strings.toString(_catId)));
+            }
+            return string(abi.encodePacked(baseStateUri, Strings.toString(_catId)));
         }
     }
 }
