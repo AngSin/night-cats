@@ -17,7 +17,7 @@ describe("NightCats tokenURI", async() => {
 		it("should return revealed cat uri", async () => {
 			const contract = await deployContract();
 			await contract.revealCats();
-			expect(await contract.tokenURI(12)).to.equal("ipfs://normalState/12");
+			expect(await contract.tokenURI(12)).to.equal("ipfs://baseState/12");
 		});
 
 		it("should return undead cat uri", async () => {
@@ -26,6 +26,15 @@ describe("NightCats tokenURI", async() => {
 			await contract.inflictCurse();
 			expect(await contract.tokenURI(12)).to.equal("ipfs://undeadState/12");
 		});
+
+		it("should return immune url when curse is active", async () => {
+			const immuneCat = 12;
+			const contract = await deployContract();
+			await contract.revealCats();
+			await contract.changeStateOfCat(immuneCat, "immune");
+			await contract.inflictCurse();
+			expect(await contract.tokenURI(immuneCat)).to.equal("ipfs://immuneState/12");
+		})
 	});
 
 	describe("God Cat tokenUri", () => {

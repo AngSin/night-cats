@@ -35,6 +35,7 @@ contract NightCats is ERC721A, Ownable {
     string public deadState = "dead";
     string public normalState = "normal";
     mapping(uint256 => string) public catToState;
+    uint256 curseCounter = 0;
 
     // uris
     string public unrevealedStateUri = "ipfs://unrevealed/";
@@ -57,10 +58,6 @@ contract NightCats is ERC721A, Ownable {
 
     function setOpenseaLink(string calldata _openseaLink) public onlyOwner {
         openseaLink = _openseaLink;
-    }
-
-    function fetchAllUnder1e() public {
-
     }
 
     modifier onlyNecklaceContract() {
@@ -102,6 +99,9 @@ contract NightCats is ERC721A, Ownable {
     }
 
     function inflictCurse() public onlyOwner {
+        if (curseCounter < 2) {
+            curseCounter++;
+        }
         curseTimestamp = block.timestamp;
         catsKilledDuringThisCurse = 0;
     }
@@ -154,8 +154,13 @@ contract NightCats is ERC721A, Ownable {
         return immuneCats;
     }
 
+    function checkMoreThanOneCurseInflicted() internal view {
+        require(curseCounter >= 2, "You can't kill yet!");
+    }
+
     function killCat(uint256 _catId) public {
         require(super.ownerOf(godCatTokenId) == msg.sender, "You are not the God Cat!");
+        checkMoreThanOneCurseInflicted();
         require(isCurseActive(), "Curse is not active!");
         require(catsKilledDuringThisCurse < maxKillsPerCurse, "You have already exhausted this curse!");
         require(isImmuneState(catToState[_catId]), "This cat is not immune to the curse! You can't kill your own slave cat!");

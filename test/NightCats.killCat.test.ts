@@ -14,6 +14,7 @@ describe("killCat", () => {
 		await catContract.mintReserve();
 		await catContract.setGodCatId(3);
 		await catContract.inflictCurse();
+		await catContract.inflictCurse();
 		await catContract.changeStateOfCat(catTobeKilled, "immune");
 
 		expect(await catContract.catToState(catTobeKilled)).to.equal("immune");
@@ -27,6 +28,7 @@ describe("killCat", () => {
 		await catContract.mintReserve();
 		await catContract.setGodCatId(3);
 		await catContract.inflictCurse();
+		await catContract.inflictCurse();
 		await catContract.changeStateOfCat(catTobeKilled, "immune");
 		expect(await catContract.catToState(catTobeKilled)).to.equal("immune");
 
@@ -38,6 +40,7 @@ describe("killCat", () => {
 		const catContract = await deployContract();
 		await catContract.mintReserve();
 		await catContract.setGodCatId(0);
+		await catContract.inflictCurse();
 		await catContract.inflictCurse();
 		for (let i = 1; i < 16; i++) {
 			await catContract.changeStateOfCat(i, "immune");
@@ -54,7 +57,18 @@ describe("killCat", () => {
 		await catContract.mintReserve();
 		await catContract.setGodCatId(0);
 		await catContract.inflictCurse();
+		await catContract.inflictCurse();
 		await expect(catContract.killCat(catTobeKilled))
 			.to.be.revertedWith("This cat is not immune to the curse! You can't kill your own slave cat!");
+	});
+
+	it("should not kill cat if it is the first curse", async () => {
+		const catTobeKilled = 19;
+		const catContract = await deployContract();
+		await catContract.mintReserve();
+		await catContract.setGodCatId(0);
+		await catContract.inflictCurse();
+		await expect(catContract.killCat(catTobeKilled))
+			.to.be.revertedWith("You can't kill yet!");
 	});
 });
