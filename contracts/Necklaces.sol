@@ -25,7 +25,6 @@ contract Necklaces is ERC721A, Ownable {
     // mint limits
     uint256 public maxImmunity = 6667;
     uint256 public maxResurrection = 3333;
-    uint256 public max = maxImmunity + maxResurrection;
 
     // necklace state
     string immunityState = "immunity";
@@ -40,12 +39,12 @@ contract Necklaces is ERC721A, Ownable {
 
     constructor() ERC721A("Necklaces", "NLACES") {}
 
-    function setMaxImmunity(uint256 _MAX_IMMUNITY) public onlyOwner {
-        maxImmunity = _MAX_IMMUNITY;
+    function setMaxImmunity(uint256 _maxImmunity) public onlyOwner {
+        maxImmunity = _maxImmunity;
     }
 
-    function setMaxResurrection(uint256 _MAX_RESURRECTION) public onlyOwner {
-        maxResurrection = _MAX_RESURRECTION;
+    function setMaxResurrection(uint256 _maxResurrection) public onlyOwner {
+        maxResurrection = _maxResurrection;
     }
 
     function _checkCatContract() internal view virtual {
@@ -104,7 +103,7 @@ contract Necklaces is ERC721A, Ownable {
     function mintNecklace(uint256 _catId) public onlyCatOwner {
         _checkCatOwnership(_catId);
         require(catToNumOfNecklaces[_catId] < 3, "You already minted 3 or more Necklaces with this cat!");
-        require(super.totalSupply() < max, "All necklaces minted out!");
+        require(super.totalSupply() < (maxImmunity + maxResurrection), "All necklaces minted out!");
         uint256 randomNum = block.timestamp % 2;
         string memory state;
         if (getResurrectionMintedCount() >= maxResurrection) {

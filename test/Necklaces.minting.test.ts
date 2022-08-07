@@ -8,7 +8,7 @@ describe("Necklaces minting", async() => {
 		return await NightCats.deploy();
 	}
 
-	describe("mint", () => {
+	describe("mintNecklace", () => {
 		it("should let cat owners mint with right state", async () => {
 			const nightCatsContract = await deployContract("NightCats");
 			const necklacesContract = await deployContract("Necklaces");
@@ -57,9 +57,21 @@ describe("Necklaces minting", async() => {
 			await necklacesContract.mintNecklace(23);
 			expect(await necklacesContract.necklaceToState(23)).to.equal("immunity");
 		});
+
+		it("should not let user mint more than available", async () => {
+			const necklaceContract = await deployContract("Necklaces");
+			const catContract = await deployContract("NightCats");
+			await necklaceContract.setCatContract(catContract.address);
+			await necklaceContract.setMaxResurrection(1);
+			await necklaceContract.setMaxImmunity(1);
+			await catContract.mintReserve();
+			await necklaceContract.mintNecklace(0);
+			await necklaceContract.mintNecklace(0);
+			await expect(necklaceContract.mintNecklace(0)).to.be.revertedWith("All necklaces minted out!");
+		});
 	});
 
-	describe("getResurrectionNecklaceCount", () => {
+	describe("getResurrectionMintedCount", () => {
 		it.skip("should return correct number of resurrection necklaces", async () => {
 			const nightCatsContract = await deployContract("NightCats");
 			const necklacesContract = await deployContract("Necklaces");
@@ -79,7 +91,7 @@ describe("Necklaces minting", async() => {
 			await necklacesContract.mintNecklace(3);
 
 			expect(await necklacesContract.totalSupply()).to.equal(4n);
-			expect(await necklacesContract.getResurrectionNecklaceCount()).to.equal(4n);
+			expect(await necklacesContract.getResurrectionMintedCount()).to.equal(4n);
 		});
 	});
 
@@ -93,16 +105,16 @@ describe("Necklaces minting", async() => {
 			await nightCatsContract.setIsPublicSaleLive(true);
 			await necklacesContract.setMaxResurrection(0);
 
-			await nightCatsContract.connect(otherAccount).mint();
+			await nightCatsContract.connect(otherAccount).mint(1);
 			await necklacesContract.connect(otherAccount).mintNecklace(400);
 			await necklacesContract.connect(otherAccount).mintNecklace(400);
 			await necklacesContract.connect(otherAccount).mintNecklace(400);
 			expect(await necklacesContract.totalSupply()).to.equal(3);
 
-			expect(await necklacesContract.getResurrectionNecklaceCount()).to.equal(0);
+			expect(await necklacesContract.getResurrectionMintedCount()).to.equal(0);
 			await necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2);
 			expect(await necklacesContract.necklaceToState(0)).to.equal("resurrection");
-			expect(await necklacesContract.getResurrectionNecklaceCount()).to.equal(1);
+			expect(await necklacesContract.getResurrectionMintedCount()).to.equal(1);
 			expect(await necklacesContract.totalSupply()).to.equal(1);
 		});
 
@@ -130,7 +142,7 @@ describe("Necklaces minting", async() => {
 			await necklacesContract.mintNecklace(0);
 			await necklacesContract.mintNecklace(0);
 
-			await nightCatsContract.connect(otherAccount).mint();
+			await nightCatsContract.connect(otherAccount).mint(1);
 			await necklacesContract.connect(otherAccount).mintNecklace(400);
 			await expect(necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2))
 				.to.be.revertedWith("First necklace is not yours to burn!");
