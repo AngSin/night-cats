@@ -52,6 +52,9 @@ contract Necklaces is ERC721A, Ownable {
         require(msg.sender == catContract, "caller is not the NightCats contract!");
     }
 
+    function changeStateOfNecklace(uint256 _necklaceId, string calldata _state) public onlyOwner {
+        necklaceToState[_necklaceId] = _state;
+    }
 
     modifier onlyCatContract() {
         _checkCatContract();
@@ -75,7 +78,7 @@ contract Necklaces is ERC721A, Ownable {
         catContract = _catContract;
     }
 
-    function getResurrectionNecklaceCount() public view returns(uint256) {
+    function getResurrectionMintedCount() public view returns(uint256) {
         uint256 resurrectionNecklaceCounter = 0;
         for (uint256 i = 0; i <= totalSupply(); i++) {
             if (checkStateIsResurrection(necklaceToState[i])) {
@@ -101,9 +104,10 @@ contract Necklaces is ERC721A, Ownable {
     function mintNecklace(uint256 _catId) public onlyCatOwner {
         _checkCatOwnership(_catId);
         require(catToNumOfNecklaces[_catId] < 3, "You already minted 3 or more Necklaces with this cat!");
+        require(super.totalSupply() < max, "All necklaces minted out!");
         uint256 randomNum = block.timestamp % 2;
         string memory state;
-        if (getResurrectionNecklaceCount() >= maxResurrection) {
+        if (getResurrectionMintedCount() >= maxResurrection) {
             state = immunityState;
         } else {
             if (randomNum == 0) {
@@ -164,6 +168,7 @@ contract Necklaces is ERC721A, Ownable {
                 raffleEntries.push(_necklaceId);
 
             }
+            super._burn(_necklaceId);
         }
     }
 
