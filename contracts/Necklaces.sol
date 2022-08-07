@@ -11,6 +11,10 @@ interface NightCat {
     function gainImmunity(uint256 _catId) external;
 
     function resurrectCat(uint256 _catId) external;
+
+    function catToState(uint256 _catId) external view returns(string memory);
+
+    function immuneState() external view returns(string memory);
 }
 
 contract Necklaces is ERC721A, Ownable {
@@ -27,6 +31,9 @@ contract Necklaces is ERC721A, Ownable {
     string immunityState = "immunity";
     string resurrectionState = "resurrection";
     mapping(uint256 => string) public necklaceToState;
+
+    // raffle entries
+    uint256[] raffleEntries;
 
     // libraries
     using Strings for uint256;
@@ -76,6 +83,11 @@ contract Necklaces is ERC721A, Ownable {
             }
         }
         return resurrectionNecklaceCounter;
+    }
+
+    function _checkCatStateIsImmune(uint256 _catId) internal view {
+        require(keccak256(abi.encodePacked(NightCat(catContract).catToState(_catId))) ==
+            keccak256(abi.encodePacked(NightCat(catContract).immuneState())), "The cat must be immune against the God Cat's curse!");
     }
 
     function checkStateIsResurrection(string memory _state) internal view returns(bool){
@@ -131,5 +143,31 @@ contract Necklaces is ERC721A, Ownable {
         require(checkStateIsResurrection(necklaceToState[_necklaceId]), "Necklace is not a resurrection necklace!");
         NightCat(catContract).resurrectCat(_catId);
         super._burn(_necklaceId);
+    }
+
+    function getRaffleEntries() public view onlyOwner returns (uint256[] memory){
+        return raffleEntries;
+    }
+
+    function fightGodCat(uint256 _catId, uint256[] calldata _necklaceIds) public onlyCatOwner {
+        _checkCatOwnership(_catId);
+        _checkCatStateIsImmune(_catId);
+        for (uint256 i = 0; i < _necklaceIds.length; i++) {
+            uint256 _necklaceId = _necklaceIds[i];
+            require(super.ownerOf(_necklaceId) == msg.sender, "This necklace is not yours!");
+            if (checkStateIsResurrection(necklaceToState[_necklaceId])) {
+                raffleEntries.push(_necklaceId);
+                raffleEntries.push(_necklaceId);
+                raffleEntries.push(_necklaceId);
+                raffleEntries.push(_necklaceId);
+            } else {
+                raffleEntries.push(_necklaceId);
+
+            }
+        }
+    }
+
+    function clearRaffleEntries() public onlyCatContract {
+        delete raffleEntries;
     }
 }
