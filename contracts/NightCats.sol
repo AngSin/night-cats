@@ -7,6 +7,10 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
+interface Necklace {
+    function clearRaffleEntries() external;
+}
+
 contract NightCats is ERC721A, Ownable {
     // necklace contract
     address necklaceContract;
@@ -54,6 +58,14 @@ contract NightCats is ERC721A, Ownable {
     using Strings for uint256;
 
     constructor() ERC721A("NightCats", "NCATS") {}
+
+    function setFreeMintSupply(uint256 _freeMintSupply) public onlyOwner {
+        freeMintSupply = _freeMintSupply;
+    }
+
+    function setPaidMintSupply(uint256 _paidMintSupply) public onlyOwner {
+        paidMintSupply = _paidMintSupply;
+    }
 
     function setOpenseaLink(string calldata _openseaLink) public onlyOwner {
         openseaLink = _openseaLink;
@@ -103,18 +115,21 @@ contract NightCats is ERC721A, Ownable {
         isPublicSaleLive = _isPublicSaleLive;
     }
 
-    function mint() public payable {
+    function mint(uint256 _quantity) public payable {
         require(isPublicSaleLive, "Public sale is not yet live!");
-        require(balanceOf(msg.sender) <= maxPerWallet, "You already have some NightCats!");
-        require(totalSupply() < (reserveSupply + freeMintSupply + paidMintSupply), "All NightCats have been minted!");
-        if (totalSupply() >= (reserveSupply + freeMintSupply)) {
-            require(msg.value >= mintPrice, "Please send at least 0.025 ETH to mint!");
+        require((balanceOf(msg.sender) + _quantity) <= maxPerWallet, "You already have enough NightCats!");
+        require((totalSupply() + _quantity) <= (reserveSupply + freeMintSupply + paidMintSupply), "You are trying to mint over the max limit!");
+        if ((totalSupply() + _quantity) > (reserveSupply + freeMintSupply)) {
+            require((msg.value * _quantity) >= mintPrice, "Please send at least 0.025 ETH per cat to mint!");
         }
-        super._safeMint(msg.sender, 1);
+        super._safeMint(msg.sender, _quantity);
     }
 
     function setGodCatId(uint256 _tokenId) public onlyOwner {
         godCatTokenId = _tokenId;
+        if (necklaceContract != address(0)) {
+            Necklace(necklaceContract).clearRaffleEntries();
+        }
     }
 
     function inflictCurse() public onlyOwner {
