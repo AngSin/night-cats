@@ -33,6 +33,7 @@ contract Necklaces is ERC721A, Ownable {
 
     // raffle entries
     uint256[] raffleEntries;
+    uint256 maxNumOfRaffleEntries = 200;
 
     // libraries
     using Strings for uint256;
@@ -53,6 +54,10 @@ contract Necklaces is ERC721A, Ownable {
 
     function changeStateOfNecklace(uint256 _necklaceId, string calldata _state) public onlyOwner {
         necklaceToState[_necklaceId] = _state;
+    }
+
+    function setMaxNumOfRaffleEntries(uint256 _maxNumOfRaffleEntries) public onlyOwner {
+        maxNumOfRaffleEntries = _maxNumOfRaffleEntries;
     }
 
     modifier onlyCatContract() {
@@ -152,9 +157,14 @@ contract Necklaces is ERC721A, Ownable {
         return raffleEntries;
     }
 
+    function getNumOfRaffleEntries() public view returns(uint256) {
+        return raffleEntries.length;
+    }
+
     function fightGodCat(uint256 _catId, uint256[] calldata _necklaceIds) public onlyCatOwner {
         _checkCatOwnership(_catId);
         _checkCatStateIsImmune(_catId);
+        require(getNumOfRaffleEntries() < maxNumOfRaffleEntries, "There are already enough challengers!");
         for (uint256 i = 0; i < _necklaceIds.length; i++) {
             uint256 _necklaceId = _necklaceIds[i];
             require(super.ownerOf(_necklaceId) == msg.sender, "This necklace is not yours!");
@@ -165,7 +175,6 @@ contract Necklaces is ERC721A, Ownable {
                 raffleEntries.push(_necklaceId);
             } else {
                 raffleEntries.push(_necklaceId);
-
             }
             super._burn(_necklaceId);
         }

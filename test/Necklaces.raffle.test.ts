@@ -60,24 +60,24 @@ describe("Necklaces raffle", () => {
 			await catContract.mintReserve();
 			await catContract.setIsPublicSaleLive(true);
 			await catContract.changeStateOfCat(0, "immune");
-			await time.setNextBlockTimestamp(333333333300);
 			await necklaceContract.mintNecklace(0);
+			await necklaceContract.changeStateOfNecklace(0, "immunity");
 			expect(await necklaceContract.necklaceToState(0)).to.equal("immunity");
-			await time.increaseTo(333333333309);
 			await necklaceContract.mintNecklace(1);
+			await necklaceContract.changeStateOfNecklace(1, "immunity");
 			expect(await necklaceContract.necklaceToState(1)).to.equal("immunity");
-			await time.increaseTo(333333333319);
 			await necklaceContract.mintNecklace(2);
+			await necklaceContract.changeStateOfNecklace(2, "immunity");
 			expect(await necklaceContract.necklaceToState(2)).to.equal("immunity");
 			expect(await necklaceContract.totalSupply()).to.equal(3);
 			await necklaceContract.fightGodCat(0, [0, 1, 2]);
+			expect(await necklaceContract.getNumOfRaffleEntries()).to.equal(3);
 			expect(await necklaceContract.getRaffleEntries())
 				.to.eql([BigNumber.from(0), BigNumber.from(1), BigNumber.from(2)]);
 			expect(await necklaceContract.totalSupply()).to.equal(0);
 		});
 
 		it("should enter raffle 12 times for 3 resurrection necklaces", async () => {
-			const [owner] = await hre.ethers.getSigners();
 			const necklaceContract = await deployContract("Necklaces");
 			const catContract = await deployContract("NightCats");
 			await necklaceContract.setCatContract(catContract.address);
@@ -92,12 +92,35 @@ describe("Necklaces raffle", () => {
 			await necklaceContract.changeStateOfNecklace(2, "resurrection");
 			expect(await necklaceContract.totalSupply()).to.equal(3);
 			await necklaceContract.fightGodCat(0, [0, 1, 2]);
+			expect(await necklaceContract.getNumOfRaffleEntries()).to.equal(12);
 			expect(await necklaceContract.getRaffleEntries()).to.eql([
 				BigNumber.from(0), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0),
 				BigNumber.from(1), BigNumber.from(1), BigNumber.from(1), BigNumber.from(1),
 				BigNumber.from(2), BigNumber.from(2), BigNumber.from(2), BigNumber.from(2),
 			]);
 			expect(await necklaceContract.totalSupply()).to.equal(0);
+		});
+
+		it("should not let cats fight after reaching max raffle entries", async () => {
+			const necklaceContract = await deployContract("Necklaces");
+			const catContract = await deployContract("NightCats");
+			await necklaceContract.setCatContract(catContract.address);
+			await catContract.mintReserve();
+			await catContract.setIsPublicSaleLive(true);
+			await catContract.changeStateOfCat(0, "immune");
+			await necklaceContract.mintNecklace(0);
+			await necklaceContract.changeStateOfNecklace(0, "resurrection");
+			await necklaceContract.mintNecklace(1);
+			await necklaceContract.changeStateOfNecklace(1, "immunity");
+			expect(await necklaceContract.totalSupply()).to.equal(2);
+			await necklaceContract.fightGodCat(0, [0]);
+			expect(await necklaceContract.getNumOfRaffleEntries()).to.equal(4);
+			expect(await necklaceContract.getRaffleEntries()).to.eql([
+				BigNumber.from(0), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0),
+			]);
+			expect(await necklaceContract.totalSupply()).to.equal(1);
+			await necklaceContract.setMaxNumOfRaffleEntries(4);
+			await expect(necklaceContract.fightGodCat(0, [1])).to.be.revertedWith("There are already enough challengers!");
 		});
 	});
 });
