@@ -8,6 +8,15 @@ describe("NightCats tokenURI", async() => {
 		return await NightCats.deploy();
 	}
 
+	describe("cursed state", () => {
+		it("should return cursed state after inflicting curse", async () => {
+			const contract = await deployContract();
+			await contract.mintReserve();
+			await contract.inflictCurse();
+			expect(await contract.tokenURI(12)).to.equal(`${await contract.cursedStateUri()}12`);
+		});
+	});
+
 	describe("Normal Cats", () => {
 		it("should return unrevealed cat uri", async () => {
 			const contract = await deployContract();

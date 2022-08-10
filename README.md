@@ -1,13 +1,6 @@
-# Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+# STEPS after DEPLOYMENT
+1. mintReserve
+2. setGodCatId
+3. reveal
+4. inflictCurse
+5. 

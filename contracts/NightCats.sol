@@ -91,6 +91,10 @@ contract NightCats is ERC721A, Ownable {
         godCatUri = _godCatUri;
     }
 
+    function setCursePeriod(uint256 _cursePeriod) public onlyOwner {
+        cursePeriod = _cursePeriod;
+    }
+
     modifier onlyNecklaceContract() {
         _checkNecklaceContract();
         _;
