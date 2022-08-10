@@ -42,11 +42,11 @@ contract NightCats is ERC721A, Ownable {
     uint256 curseCounter = 0;
 
     // uris
-    string public baseStateUri = "ipfs://baseState/";
-    string public cursedStateUri = "ipfs://cursedState/";
-    string public deadStateUri = "ipfs://deadState/";
-    string public immuneStateUri = "ipfs://immuneState/";
-    string public godCatUri = "ipfs://godCat/";
+    string public baseStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmVM3agU7eZXyvYgUwzX8LZFtgz4FfNR31pbLAH4Ykdtkb/";
+    string public cursedStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmYDxzyU5xqm5ZUMbJS8T3jUGeG6bQwdjDp4nvKQnkM2Xx/";
+    string public immuneStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmYKbDn17t26WH72gfGKR1MShHgbv3rvhroFJfCe5A5kKv/";
+    string public deadStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmW48BxfkzNz1NcML16P2be6SnkeoEbvqFnayhE7Chanes/";
+    string public godCatUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmTEVBu1BpBjNjZdx8wxXwkYAm2856Yvq58AC1mdcY9YuT/";
 
     // periods
     uint public curseTimestamp;
