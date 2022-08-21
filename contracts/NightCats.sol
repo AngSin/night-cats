@@ -2,7 +2,7 @@
 // dev: https://twitter.com/ultrasupahotfir
 pragma solidity ^0.8.9;
 
-import "erc721a/contracts/ERC721A.sol";
+import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs/ERC721A/blob/main/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";

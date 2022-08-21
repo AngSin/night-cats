@@ -12,7 +12,8 @@ describe("killCat", () => {
 		const catTobeKilled = 19;
 		const catContract = await deployContract();
 		await catContract.mintReserve();
-		await catContract.setGodCatId(3);
+		// await catContract.setGodCatId(3);
+		console.log(await catContract.godCatTokenId());
 		await catContract.inflictCurse();
 		await catContract.inflictCurse();
 		await catContract.changeStateOfCat(catTobeKilled, "immune");

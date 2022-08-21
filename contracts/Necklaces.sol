@@ -2,7 +2,7 @@
 // dev: https://twitter.com/ultrasupahotfir
 pragma solidity ^0.8.9;
 
-import "erc721a/contracts/ERC721A.sol";
+import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs/ERC721A/blob/main/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
@@ -34,6 +34,10 @@ contract Necklaces is ERC721A, Ownable {
     // raffle entries
     uint256[] raffleEntries;
     uint256 maxNumOfRaffleEntries = 200;
+
+    // uris
+    string immunityNecklaceUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmP96eoA1DgajBwios1ffj6x6NgZnndxSQor2nfK8VQqwm";
+    string resurrectionNecklaceUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmYns8qVGcSJ9VBkfzvgTro26yUP6wHpKF1PMf17QmwcXF";
 
     // libraries
     using Strings for uint256;
@@ -132,6 +136,7 @@ contract Necklaces is ERC721A, Ownable {
         require(checkStateIsImmunity(necklaceToState[_necklaceId1]), "Second necklace is not an immunity necklace!");
         require(super.ownerOf(_necklaceId2) == msg.sender, "Third necklace is not yours to burn!");
         require(checkStateIsImmunity(necklaceToState[_necklaceId2]), "Third necklace is not an immunity necklace!");
+        require(_necklaceId0 != _necklaceId1 && _necklaceId0 != _necklaceId2 && _necklaceId1 != _necklaceId2, "You must use unique necklaces!");
         necklaceToState[_necklaceId0] = resurrectionState;
         super._burn(_necklaceId1);
         super._burn(_necklaceId2);
@@ -169,12 +174,12 @@ contract Necklaces is ERC721A, Ownable {
             uint256 _necklaceId = _necklaceIds[i];
             require(super.ownerOf(_necklaceId) == msg.sender, "This necklace is not yours!");
             if (checkStateIsResurrection(necklaceToState[_necklaceId])) {
-                raffleEntries.push(_necklaceId);
-                raffleEntries.push(_necklaceId);
-                raffleEntries.push(_necklaceId);
-                raffleEntries.push(_necklaceId);
+                raffleEntries.push(_catId);
+                raffleEntries.push(_catId);
+                raffleEntries.push(_catId);
+                raffleEntries.push(_catId);
             } else {
-                raffleEntries.push(_necklaceId);
+                raffleEntries.push(_catId);
             }
             super._burn(_necklaceId);
         }
@@ -182,5 +187,13 @@ contract Necklaces is ERC721A, Ownable {
 
     function clearRaffleEntries() public onlyCatContract {
         delete raffleEntries;
+    }
+
+    function tokenURI(uint256 _necklaceId) override public view returns (string memory) {
+        if (checkStateIsImmunity(necklaceToState[_necklaceId])) {
+            return immunityNecklaceUri;
+        } else {
+            return resurrectionNecklaceUri;
+        }
     }
 }

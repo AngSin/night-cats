@@ -147,5 +147,25 @@ describe("Necklaces minting", async() => {
 			await expect(necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 2))
 				.to.be.revertedWith("First necklace is not yours to burn!");
 		});
+
+		it("should not let users repeat necklaces", async() => {
+			const [_, otherAccount] = await hre.ethers.getSigners();
+			const nightCatsContract = await deployContract("NightCats");
+			const necklacesContract = await deployContract("Necklaces");
+			await necklacesContract.setCatContract(nightCatsContract.address);
+			await nightCatsContract.mintReserve();
+			await nightCatsContract.setIsPublicSaleLive(true);
+			await necklacesContract.setMaxResurrection(0);
+
+			await nightCatsContract.connect(otherAccount).mint(1);
+			await necklacesContract.connect(otherAccount).mintNecklace(400);
+			await necklacesContract.connect(otherAccount).mintNecklace(400);
+			await necklacesContract.connect(otherAccount).mintNecklace(400);
+			expect(await necklacesContract.totalSupply()).to.equal(3);
+
+			expect(await necklacesContract.getResurrectionMintedCount()).to.equal(0);
+			await expect(necklacesContract.connect(otherAccount).createResurrectionNecklace(0, 1, 0)).to.be
+				.revertedWith("You must use unique necklaces!");
+		});
 	});
 });
